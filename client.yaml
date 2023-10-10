@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-client
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
+      labels:
+        app: app-client
+    spec:
+      containers:
+        - name: app-client
+          image: node:14
+          env:
+            - name: SERVER_URL
+              value: "app-server-service.server"
+            - name: SERVER_PORT
+              value: "3000"
+
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              node /app/client.js
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: clientjs-volume
+              mountPath: /app
+      volumes:
+        - name: clientjs-volume
+          configMap:
+            name: clientjs-config
+
+
